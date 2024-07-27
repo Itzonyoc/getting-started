@@ -85,7 +85,7 @@ pipeline {
             steps {
                 echo 'Desplegando la aplicación...'
                 echo 'Docker push'
-                withCredential([usernamePassword(
+                withCredentials([usernamePassword(
                     credentialsId: "docker-hub-user",
                     usernameVariable: "DOCKER_USERNAME",
                     passwordVariable: "DOCKER_PASSWORD"
@@ -95,6 +95,11 @@ pipeline {
                         docker push $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG
                     '''
                 }
+            }
+        }
+        stage ('post-despliegue') {
+            steps {
+                cleanWs()
             }
         }
     }
