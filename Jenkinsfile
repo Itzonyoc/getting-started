@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         VERSION_TAG = "3.0.0"
-        IMAGE_NAME = "demo-curso"
+        IMAGE_NAME = "getting-started"
         DOCKER_HUB_REGISTRY = credentials('registro-hub')
     }
  
