@@ -84,6 +84,17 @@ pipeline {
         stage('Despliegue') {
             steps {
                 echo 'Desplegando la aplicación...'
+                echo 'Docker push'
+                withCredential([usernamePassword(
+                    credentialsId: "docker-hub-user",
+                    usernameVariable: "DOCKER_USERNAME",
+                    passwordVariable: "DOCKER_PASSWORD"
+                )]) {
+                    sh '''
+                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+                        docker push $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG
+                    '''
+                }
             }
         }
     }
