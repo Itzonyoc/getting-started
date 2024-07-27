@@ -46,7 +46,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Compilando el código...'
-                sh "docker build -t demo-curso:100 ."
+                sh "docker build -t $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG ."
             }
         }
         stage('SonarQube') {
