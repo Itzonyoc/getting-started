@@ -39,7 +39,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo 'Compilando el código...',
+                echo 'Compilando el código...'
                 sh "docker build -t demo-curso:100"
             }
         }
