@@ -43,12 +43,6 @@ pipeline {
             }
 
         }
-        stage('Build') {
-            steps {
-                echo 'Compilando el código...'
-                sh "docker build -t $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG ."
-            }
-        }
         stage('SonarQube') {
             environment {
                 scannerHome = tool 'sonar-scanner'
@@ -59,6 +53,12 @@ pipeline {
                 }
             }
  
+        }
+        /*stage('Build') {
+            steps {
+                echo 'Compilando el código...'
+                sh "docker build -t $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG ."
+            }
         }
         stage('Pruebas') {
             steps {
@@ -80,20 +80,47 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/ //No se va a ocupar porque vamos a publicar hacia Azure
         stage('Despliegue') {
+            agent {
+                docker {
+                    image 'jenkins-ansible:1.0.0'
+                    args '--entrypoint="" -u root'
+                }
+            }
             steps {
                 echo 'Desplegando la aplicación...'
-                echo 'Docker push'
-                withCredentials([usernamePassword(
-                    credentialsId: "docker-hub-user",
-                    usernameVariable: "DOCKER_USERNAME",
-                    passwordVariable: "DOCKER_PASSWORD"
-                )]) {
-                    sh '''
-                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-                        docker push $DOCKER_HUB_REGISTRY/$IMAGE_NAME:$VERSION_TAG
-                    '''
+                script {
+                    withCredentials([azureServicePrincipal('sp-azure-curso-devops')]) {
+                        echo "Iniciando sesión Azure"
+
+                        sh "az account clear"
+                        sh "az login --service-principal --username ${AZURE_CLIENT_ID} --password ${AZURE_CLIENT_SECRET} --tenant ${AZURE_TENANT_ID}"
+                        sh "az account set --subscription ${AZURE_SUBSCRIPTION_ID}"
+                        // Se omite esta línea porque se hará una publicación al AppService
+                        // sh "ansible-playbook main.yml -i hosts -e TIPO_TAREA=" + env.TIPO + " -e subscription_id=${AZURE_SUBSCRIPTION_ID} -e client_id=${AZURE_CLIENT_ID} -e secret_id=${AZURE_CLIENT_SECRET} -e tenant_id=${AZURE_TENANT_ID} -v"
+
+                        // Comando para obtener las modalidades de publicacion
+                        // az webapp deployment list-publishing-profiles --resource-group myResourceGroupAppNode2 --name myfirstWebAppNodeAnsible-JFF
+                        // myfirstwebappnodeansible-jff.scm.azurewebsites.net:443
+
+                        withCredentials([usernamePassword(
+                            credentialsId: "username-azure-app-service-deploy",
+                            usernameVariable: "username_webapp",
+                            passwordVariable: "password_webapp"
+                        )]) {
+
+                            sh 'git init'
+                            sh 'git config --local user.email "myapp@mail.com"'
+                            sh 'git config --local user.name "myapp"'
+                            sh 'git add *'
+                            sh 'git commit -m "Initial commit"'
+                            sh 'git checkout -b master'
+                            sh 'git remote add azure https://\\${username_webapp}:${password_webapp}@myfirstwebappnodeansible-jff.scm.azurewebsites.net:443/myfirstwebappnodeansible-jff.git'
+                            sh 'git push -u azure master -f'
+
+                        }
+                    }
                 }
             }
         }

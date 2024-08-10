@@ -14,8 +14,10 @@ app.post('/items', addItem);
 app.put('/items/:id', updateItem);
 app.delete('/items/:id', deleteItem);
 
+var port = process.env.PORT || 3000;
+
 db.init().then(() => {
-    app.listen(3000, () => console.log('Listening on port 3000'));
+    app.listen(port, () => console.log('Listening on port ' + port));
 }).catch((err) => {
     console.error(err);
     process.exit(1);
