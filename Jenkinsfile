@@ -115,7 +115,7 @@ pipeline {
                             sh 'git config --local user.name "myapp"'
                             sh 'git add *'
                             sh 'git commit -m "Initial commit"'
-                            //sh 'git checkout -b master'
+                            sh 'git checkout -b master'
                             sh "git remote add azure https://\\${username_webapp}:${password_webapp}@myfirstwebappnodeansible-jff.scm.azurewebsites.net:443/myfirstwebappnodeansible-jff.git"
                             sh 'git push -u azure master -f'
 
